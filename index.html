@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0e7490" />
+<title>Terreno · Mantención de Piscinas</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet" />
+
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['"Space Grotesk"', 'system-ui', 'sans-serif'],
+          mono: ['"IBM Plex Mono"', 'monospace'],
+        },
+        colors: {
+          ink:    '#0d2a33',
+          water:  '#0891b2',
+          deep:   '#0e7490',
+          line:   '#d3e3e8',
+          mist:   '#eef4f6',
+          wa:     '#25d366',
+        },
+      },
+    },
+  };
+</script>
+
+<style>
+  :root { color-scheme: light; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { background: #eef4f6; }
+  /* Utilidades que la CDN de Tailwind no genera con esos nombres */
+  .font-400 { font-weight: 400; }
+  .font-500 { font-weight: 500; }
+  .font-600 { font-weight: 600; }
+  .font-700 { font-weight: 700; }
+  .border-1\.5 { border-width: 1.5px; border-style: solid; }
+  /* Inputs grandes, sin zoom en iOS (>=16px), fáciles con una mano */
+  .fld {
+    width: 100%; font-size: 17px; line-height: 1.2;
+    border: 1.5px solid #d3e3e8; border-radius: 14px;
+    padding: 14px 14px; background: #fff; color: #0d2a33;
+    transition: border-color .15s, box-shadow .15s;
+    -webkit-appearance: none; appearance: none;
+  }
+  .fld:focus { outline: none; border-color: #0891b2; box-shadow: 0 0 0 3px rgba(8,145,178,.15); }
+  select.fld { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%230e7490' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 40px; }
+  .lbl { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #5b7a82; margin-bottom: 6px; display:block; }
+  .card { background:#fff; border:1.5px solid #e2ecef; border-radius:20px; }
+  .eyebrow { font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#0891b2; }
+  /* Chips de estado del agua */
+  .chip { border:1.5px solid #d3e3e8; border-radius:14px; padding:12px 8px; text-align:center; font-weight:600; font-size:14px; color:#0d2a33; background:#fff; transition:.12s; cursor:pointer; }
+  .chip.on { border-color:#0891b2; background:#ecfbff; box-shadow:0 0 0 3px rgba(8,145,178,.12); }
+  .readout { font-family:"IBM Plex Mono",monospace; font-weight:600; }
+  /* Preview estilo mensaje */
+  .bubble { background:#e7ffdb; border:1px solid #cdefc0; border-radius:16px; border-top-left-radius:4px; }
+  .wa-btn { background:#25d366; box-shadow:0 6px 18px -4px rgba(37,211,102,.55); }
+  .wa-btn:active { transform:translateY(1px); }
+  @media (prefers-reduced-motion: reduce) { * { transition:none !important; } }
+  .safe-bottom { padding-bottom: calc(env(safe-area-inset-bottom) + 124px); }
+</style>
+</head>
+
+<body class="font-sans text-ink antialiased">
+
+  <!-- Encabezado -->
+  <header class="sticky top-0 z-20 bg-deep text-white">
+    <div class="max-w-md mx-auto px-5 pt-4 pb-4 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-white/15 grid place-items-center shrink-0">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s2-3 5-3 4 3 5 3 2-3 5-3 5 3 5 3"/><path d="M2 18s2-3 5-3 4 3 5 3 2-3 5-3 5 3 5 3"/><path d="M2 6s2-3 5-3 4 3 5 3 2-3 5-3 5 3 5 3"/></svg>
+      </div>
+      <div class="leading-tight">
+        <p class="text-[11px] font-bold tracking-[.18em] text-cyan-200/90">MANTENCIÓN EN TERRENO</p>
+        <h1 class="text-lg font-700 -mt-0.5">Registro de visita</h1>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-md mx-auto px-4 pt-5 safe-bottom">
+
+    <!-- CLIENTE -->
+    <section class="card p-5 mb-4">
+      <p class="eyebrow mb-3">Cliente</p>
+      <div class="grid gap-3">
+        <div>
+          <label class="lbl" for="nombre">Nombre</label>
+          <input id="nombre" class="fld" type="text" autocomplete="off" placeholder="Ej. Familia Rojas" />
+        </div>
+        <div>
+          <label class="lbl" for="direccion">Dirección</label>
+          <input id="direccion" class="fld" type="text" autocomplete="off" placeholder="Ej. Los Aromos 123, Quilicura" />
+        </div>
+        <div>
+          <label class="lbl" for="fono">WhatsApp del cliente <span class="text-slate-400 font-400 normal-case">(opcional)</span></label>
+          <input id="fono" class="fld" type="tel" inputmode="numeric" autocomplete="off" placeholder="Ej. 9 1234 5678" />
+        </div>
+      </div>
+    </section>
+
+    <!-- PISCINA -->
+    <section class="card p-5 mb-4">
+      <p class="eyebrow mb-3">Piscina</p>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="lbl" for="volumen">Volumen (litros)</label>
+          <input id="volumen" class="fld readout" type="text" inputmode="numeric" autocomplete="off" placeholder="Ej. 45000" />
+        </div>
+        <div>
+          <label class="lbl" for="caudal">Caudal bomba (m³/h)</label>
+          <input id="caudal" class="fld readout" type="text" inputmode="decimal" autocomplete="off" value="8" />
+        </div>
+      </div>
+      <p class="text-[12px] text-slate-500 mt-2 leading-snug">
+        Si no conoces el caudal, deja <b>8 m³/h</b> (bomba doméstica estándar). El filtrado se calcula para recircular todo el volumen.
+      </p>
+    </section>
+
+    <!-- MEDICIONES -->
+    <section class="card p-5 mb-4">
+      <p class="eyebrow mb-3">Mediciones de hoy</p>
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        <div>
+          <label class="lbl" for="ph">pH actual</label>
+          <input id="ph" class="fld readout text-lg" type="text" inputmode="decimal" autocomplete="off" placeholder="7.2" />
+          <p class="text-[11px] text-slate-400 mt-1">Ideal 7,2–7,6</p>
+        </div>
+        <div>
+          <label class="lbl" for="cloro">Cloro libre (ppm)</label>
+          <input id="cloro" class="fld readout text-lg" type="text" inputmode="decimal" autocomplete="off" placeholder="1.0" />
+          <p class="text-[11px] text-slate-400 mt-1">Ideal 1–3 ppm</p>
+        </div>
+      </div>
+
+      <label class="lbl">Estado del agua</label>
+      <div id="estados" class="grid grid-cols-2 gap-2 mb-4">
+        <button type="button" class="chip on" data-estado="limpia">Limpia / cristalina</button>
+        <button type="button" class="chip" data-estado="turbia_leve">Ligeramente turbia</button>
+        <button type="button" class="chip" data-estado="turbia">Turbia</button>
+        <button type="button" class="chip" data-estado="verde">Verde (algas)</button>
+      </div>
+
+      <label class="lbl">Temporada <span class="text-slate-400 font-400 normal-case">(se ajusta sola por el mes)</span></label>
+      <div id="temporadas" class="grid grid-cols-3 gap-2 mb-4">
+        <button type="button" class="chip" data-temp="alta">Alta<span class="block text-[10px] font-400 text-slate-400 normal-case mt-0.5">verano</span></button>
+        <button type="button" class="chip" data-temp="media">Media<span class="block text-[10px] font-400 text-slate-400 normal-case mt-0.5">prim./otoño</span></button>
+        <button type="button" class="chip" data-temp="baja">Baja<span class="block text-[10px] font-400 text-slate-400 normal-case mt-0.5">invierno</span></button>
+      </div>
+
+      <div>
+        <label class="lbl" for="obs">Observaciones <span class="text-slate-400 font-400 normal-case">(opcional)</span></label>
+        <input id="obs" class="fld" type="text" autocomplete="off" placeholder="Ej. hojas en el fondo, borde con sarro" />
+      </div>
+
+      <!-- Cloro: siempre combinación granulado (corrección de hoy) + pastilla (mantención) -->
+      <div class="mt-4">
+        <label class="lbl" for="prodCloro">Granulado · corrección de hoy</label>
+        <select id="prodCloro" class="fld">
+          <option value="dicloro55" selected>Dicloro 55% (granulado)</option>
+          <option value="calcio65">Hipoclorito de calcio 65% (granulado)</option>
+          <option value="liquido10">Cloro líquido 10% (hipoclorito de sodio)</option>
+          <option value="ninguno">No aplico granulado hoy (solo pastilla)</option>
+        </select>
+      </div>
+
+      <!-- Pastilla triple acción: mantiene el cloro entre visitas -->
+      <div class="mt-4 rounded-xl border border-line/70 bg-mist/60 p-3.5">
+        <label class="flex items-center gap-2.5 select-none">
+          <input id="usaPastilla" type="checkbox" checked class="w-5 h-5 rounded accent-water shrink-0" />
+          <span class="font-600 text-[15px] text-ink">Pastilla triple acción (200 g)</span>
+        </label>
+        <p class="text-[12px] text-slate-500 mt-1.5 leading-snug">Cloro + alguicida + clarificante de disolución lenta. Sostiene el cloro hasta tu próxima visita. La cantidad se ajusta por temporada y por dónde la dejas.</p>
+        <div id="pastillaCfg" class="mt-3 grid gap-3">
+          <div>
+            <label class="lbl" for="entrega">Dónde la dejas</label>
+            <select id="entrega" class="fld">
+              <option value="clorador" selected>Clorador en línea</option>
+              <option value="flotador">Flotador</option>
+              <option value="skimmer">Canastillo del skimmer</option>
+              <option value="bomba">Canastillo de la bomba</option>
+            </select>
+            <p id="entregaWarn" class="text-[12px] mt-1.5 leading-snug"></p>
+          </div>
+          <div>
+            <label class="lbl" for="proxVisita">Próxima visita en</label>
+            <select id="proxVisita" class="fld">
+              <option value="1">1 semana</option>
+              <option value="2" selected>2 semanas</option>
+              <option value="3">3 semanas</option>
+              <option value="4">4 semanas (mensual)</option>
+              <option value="5">5 semanas</option>
+              <option value="6">6 semanas</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESULTADOS -->
+    <section class="card p-5 mb-4">
+      <div class="flex items-center justify-between mb-3">
+        <p class="eyebrow">Dosis calculada</p>
+        <span id="badgeEstado" class="text-[11px] font-700 px-2.5 py-1 rounded-full bg-mist text-deep">—</span>
+      </div>
+
+      <div id="resultados" class="grid gap-3">
+        <!-- se rellena por JS -->
+      </div>
+
+      <div class="mt-4 rounded-xl bg-amber-50 border border-amber-200 p-3 flex gap-2.5">
+        <svg class="shrink-0 mt-0.5" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <p class="text-[12.5px] text-amber-800 leading-snug">
+          Dosis <b>estimadas</b>. Disuelve y aplica de a poco, con la bomba en marcha, y <b>vuelve a medir</b> antes de repetir. Nunca mezcles productos ni apliques todo de una vez.
+        </p>
+      </div>
+    </section>
+
+    <!-- COBRO (opcional) -->
+    <section class="card p-5 mb-4">
+      <p class="eyebrow mb-3">Cobro</p>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="lbl" for="precioBase">Visita base ($)</label>
+          <input id="precioBase" class="fld readout" type="text" inputmode="numeric" value="15000" />
+        </div>
+        <div>
+          <label class="lbl" for="precioKg">pH por kg ($)</label>
+          <input id="precioKg" class="fld readout" type="text" inputmode="numeric" value="1000" />
+        </div>
+      </div>
+      <div class="mt-3 flex items-center justify-between rounded-xl bg-mist px-4 py-3">
+        <span class="text-sm font-600 text-slate-600">Total estimado</span>
+        <span id="total" class="readout text-xl text-deep">$15.000</span>
+      </div>
+      <label class="flex items-center gap-2.5 mt-3 text-[13px] text-slate-600 select-none">
+        <input id="incluirCobro" type="checkbox" checked class="w-5 h-5 rounded accent-water" />
+        Incluir el valor en el reporte al cliente
+      </label>
+    </section>
+
+    <!-- PREVIEW DEL REPORTE (elemento distintivo) -->
+    <section class="mb-4">
+      <p class="eyebrow mb-2 px-1">Así le llega al cliente</p>
+      <div class="bubble p-4">
+        <pre id="preview" class="whitespace-pre-wrap break-words font-sans text-[13.5px] leading-relaxed text-ink"></pre>
+      </div>
+      <div class="mt-3">
+        <label class="lbl" for="firma">Tu nombre o marca <span class="text-slate-400 font-400 normal-case">(firma del mensaje)</span></label>
+        <input id="firma" class="fld" type="text" autocomplete="off" placeholder="Ej. Nicolás · AquaClean" />
+      </div>
+    </section>
+
+    <button id="btnCopiar" type="button" class="w-full h-12 rounded-xl border-1.5 border-line bg-white text-deep font-600 flex items-center justify-center gap-2 mb-4 active:scale-[.99] transition">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      <span id="copiarTxt">Copiar reporte</span>
+    </button>
+
+    <!-- RESUMEN PARA REGISTRO PROPIO -->
+    <section class="mb-4">
+      <p class="eyebrow mb-2 px-1">Resumen para mi registro</p>
+      <div class="rounded-2xl bg-ink p-4">
+        <pre id="resumen" class="whitespace-pre-wrap break-words font-mono text-[12px] leading-relaxed text-cyan-50"></pre>
+      </div>
+      <p class="text-[12px] text-slate-500 mt-2 px-1 leading-snug">Versión corta para pegar en tu chat de WhatsApp (o en “Mensajes guardados”) y llevar el historial de cada visita.</p>
+    </section>
+
+    <button id="btnCopiarResumen" type="button" class="w-full h-12 rounded-xl border-1.5 border-line bg-white text-deep font-600 flex items-center justify-center gap-2 mb-2 active:scale-[.99] transition">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      <span id="copiarResumenTxt">Copiar resumen</span>
+    </button>
+  </main>
+
+  <!-- Barra fija de acción -->
+  <div class="fixed bottom-0 inset-x-0 z-30 bg-gradient-to-t from-mist via-mist to-transparent pt-6 pb-[calc(env(safe-area-inset-bottom)+14px)]">
+    <div class="max-w-md mx-auto px-4">
+      <button id="btnWA" type="button" class="wa-btn w-full h-16 rounded-2xl text-white font-700 text-lg flex items-center justify-center gap-3">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.71.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.82 9.82 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.82 11.82 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.88 11.88 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.82 11.82 0 0 0-3.48-8.413"/></svg>
+        Enviar por WhatsApp
+      </button>
+    </div>
+  </div>
+
+<script>
+/* ============================================================
+   Lógica de cálculo — 100% local, sin conexión
+   ============================================================ */
+
+const $ = id => document.getElementById(id);
+const num = v => { const n = parseFloat(String(v).replace(',', '.').replace(/[^\d.-]/g, '')); return isFinite(n) ? n : NaN; };
+const fmt = (n, dec = 0) => n.toLocaleString('es-CL', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+const clp = n => '$' + fmt(Math.round(n));
+
+/* --- Parámetros químicos (estimaciones prácticas del rubro) --- */
+const PH_MIN = 7.2, PH_MAX = 7.6, PH_TARGET = 7.4;
+const RATE_PH_UP   = 10;  // g de carbonato de sodio por m³ para subir ~0,2 pH
+const RATE_PH_DOWN = 15;  // g de bisulfato de sodio por m³ para bajar ~0,2 pH
+
+const PRODUCTOS_CLORO = {
+  calcio65:  { label: 'hipoclorito de calcio 65%', corto: 'HTH 65%', conc: 0.65, liquido: false },
+  dicloro55: { label: 'dicloro 55%',               corto: 'dicloro 55%', conc: 0.55, liquido: false },
+  liquido10: { label: 'cloro líquido 10%',         corto: 'cloro líquido', conc: 0.10, liquido: true  },
+};
+
+const ESTADOS = {
+  limpia:      { label: 'Limpia / cristalina', fcTarget: 2,  vueltas: 1.0, choque: false, nota: '' },
+  turbia_leve: { label: 'Ligeramente turbia',  fcTarget: 3,  vueltas: 1.5, choque: false, nota: '' },
+  turbia:      { label: 'Turbia',              fcTarget: 5,  vueltas: 2.0, choque: true,  nota: 'Cloración de recuperación.' },
+  verde:       { label: 'Verde (algas)',       fcTarget: 12, vueltas: 3.0, choque: true,  nota: 'Choque + cepillado; evaluar floculante.' },
+};
+
+/* --- Pastilla triple acción (tricloro, disolución lenta) ---
+   Modelo recalibrado con dato de terreno: 2 pastillas en clorador duraron 5 semanas.
+   Consumo = m³ × BASE × (temporada) × (entrega) × semanas, en gramos de tricloro. */
+const PASTILLA_G = 200;        // gramos por pastilla estándar
+const BASE_G_M3_SEM = 6;       // g de tricloro por m³ por semana, referencia VERANO + FLOTADOR
+                               // (ajusta este número si tu marca rinde distinto; sube = más pastillas)
+
+// Multiplicadores de temporada (hemisferio sur). Invierno consume ~1/3 del verano.
+const SEASONS = {
+  alta:  { label: 'Alta',  mult: 1.00, filt: 1.15 },  // verano: sol fuerte, uso alto
+  media: { label: 'Media', mult: 0.60, filt: 1.00 },  // primavera/otoño
+  baja:  { label: 'Baja',  mult: 0.30, filt: 0.85 },  // invierno: agua fría, poco uso
+};
+
+// Método de entrega: cambia la velocidad de disolución (y la seguridad del equipo).
+const DELIVERY = {
+  clorador: { label: 'clorador en línea',    loc: 'el clorador en línea',   mult: 0.75, warn: '' },
+  flotador: { label: 'flotador',             loc: 'el flotador',            mult: 1.00, warn: '' },
+  skimmer:  { label: 'canastillo del skimmer', loc: 'el canastillo del skimmer', mult: 1.20,
+              warn: 'En el skimmer se gastan más rápido y, con la bomba apagada, queda agua muy clorada estancada. Ojo con los sellos.' },
+  bomba:    { label: 'canastillo de la bomba', loc: 'el canastillo de la bomba', mult: 1.20,
+              warn: 'No recomendado: con la bomba apagada, el agua ácida y muy clorada se estanca contra el impulsor y los sellos y los corroe. Mejor usa el clorador en línea.' },
+};
+
+// Autodetección de temporada por mes (0 = enero … 11 = diciembre)
+function temporadaDelMes(m) {
+  if ([11, 0, 1].includes(m)) return 'alta';        // dic-ene-feb
+  if ([5, 6, 7].includes(m))  return 'baja';        // jun-jul-ago
+  return 'media';                                    // resto
+}
+
+let estadoSel = 'limpia';
+let temporadaSel = temporadaDelMes(new Date().getMonth());
+
+/* --- pH --- */
+function calcPH(vol, ph) {
+  if (!isFinite(vol) || !isFinite(ph)) return null;
+  if (ph >= PH_MIN && ph <= PH_MAX) return { need: false };
+  const m3 = vol / 1000;
+  const d = PH_TARGET - ph;
+  const subir = d > 0;
+  const rate = subir ? RATE_PH_UP : RATE_PH_DOWN;
+  const gramos = m3 * (Math.abs(d) / 0.2) * rate;
+  return {
+    need: true, subir, gramos,
+    producto: subir ? 'carbonato de sodio (elevador de pH)' : 'bisulfato de sodio (reductor de pH)',
+    accion: subir ? 'Subir pH' : 'Bajar pH',
+  };
+}
+
+/* --- Cloro --- */
+function calcCloro(vol, fc, prodKey) {
+  if (!isFinite(vol) || !isFinite(fc)) return null;
+  if (prodKey === 'ninguno') return { need: false, skip: true };
+  const est = ESTADOS[estadoSel], p = PRODUCTOS_CLORO[prodKey];
+  const delta = est.fcTarget - fc;
+  if (delta <= 0.1) return { need: false, choque: est.choque, objetivo: est.fcTarget };
+  const puro = delta * (vol / 1000);      // g de cloro disponible
+  const prod = puro / p.conc;             // g de producto comercial
+  if (p.liquido) return { need: true, cantidad: prod / 1.2, unidad: 'ml', producto: p.label, choque: est.choque, objetivo: est.fcTarget };
+  return { need: true, cantidad: prod, unidad: 'g', producto: p.label, choque: est.choque, objetivo: est.fcTarget };
+}
+
+/* --- Pastilla triple acción (mantención entre visitas) --- */
+function calcPastillas(vol, semanas, tempKey, entKey) {
+  if (!isFinite(vol) || vol <= 0 || !isFinite(semanas)) return null;
+  const m3 = vol / 1000;
+  const t = SEASONS[tempKey] || SEASONS.media;
+  const e = DELIVERY[entKey] || DELIVERY.clorador;
+  const gramosNec = m3 * BASE_G_M3_SEM * t.mult * e.mult * semanas;
+  const n = Math.max(1, Math.ceil(gramosNec / PASTILLA_G));
+  return { n, semanas, gramos: n * PASTILLA_G, entrega: e, temporada: t };
+}
+
+/* --- Filtrado --- */
+function calcFiltrado(vol, caudalM3h, tempKey) {
+  if (!isFinite(vol) || !isFinite(caudalM3h) || caudalM3h <= 0) return null;
+  const est = ESTADOS[estadoSel];
+  const t = SEASONS[tempKey] || SEASONS.media;
+  const vueltaH = vol / (caudalM3h * 1000);          // horas por recirculación completa
+  let horas = Math.max(3, Math.round(vueltaH * est.vueltas * t.filt * 2) / 2);
+  let plan;
+  if (horas <= 6)       plan = 'Se puede dejar en un solo ciclo continuo, de preferencia en las horas de más sol.';
+  else if (horas <= 10) plan = 'Conviene dividirlo en dos ciclos: mitad en la mañana y mitad en la tarde.';
+  else                  plan = 'Filtrado extendido: repartir en 2–3 ciclos o dejar la bomba casi continua hasta que el agua aclare.';
+  return { horas, vueltaH, plan };
+}
+
+/* --- Formato de cantidades --- */
+function qty(cant, unidad) {
+  if (unidad === 'g') {
+    if (cant >= 1000) return `${fmt(cant, 0)} g (${fmt(cant / 1000, 2)} kg)`;
+    return `${fmt(cant, cant < 100 ? 1 : 0)} g`;
+  }
+  return `${fmt(cant, cant < 100 ? 0 : 0)} ml`;
+}
+
+/* ============================================================
+   Render
+   ============================================================ */
+
+function leerDatos() {
+  return {
+    nombre: $('nombre').value.trim(),
+    direccion: $('direccion').value.trim(),
+    fono: $('fono').value.trim(),
+    vol: num($('volumen').value),
+    caudal: num($('caudal').value),
+    ph: num($('ph').value),
+    cloro: num($('cloro').value),
+    obs: $('obs').value.trim(),
+    prod: $('prodCloro').value,
+    usaPastilla: $('usaPastilla').checked,
+    semanas: parseInt($('proxVisita').value, 10) || 2,
+    entrega: $('entrega').value,
+    firma: $('firma').value.trim(),
+    base: num($('precioBase').value) || 0,
+    kgPrecio: num($('precioKg').value) || 0,
+    incluirCobro: $('incluirCobro').checked,
+  };
+}
+
+function filaResultado(icono, titulo, valor, sub, tono = 'water') {
+  const colores = {
+    water: 'text-deep', ok: 'text-emerald-600', warn: 'text-amber-600',
+  };
+  return `
+    <div class="flex items-start gap-3 rounded-xl border border-line/70 p-3.5">
+      <div class="w-9 h-9 rounded-lg bg-mist grid place-items-center shrink-0 ${colores[tono]}">${icono}</div>
+      <div class="min-w-0 flex-1">
+        <p class="text-[11px] font-700 tracking-wide uppercase text-slate-400">${titulo}</p>
+        <p class="readout text-lg ${colores[tono]} leading-tight mt-0.5">${valor}</p>
+        ${sub ? `<p class="text-[12px] text-slate-500 mt-0.5 leading-snug">${sub}</p>` : ''}
+      </div>
+    </div>`;
+}
+
+const IC = {
+  gota: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>',
+  reloj: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>',
+  frasco: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6l-4.5 8A2 2 0 0 0 7.3 20h9.4a2 2 0 0 0 1.8-3L14 9V3"/></svg>',
+  pastilla: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5 3.5 13.5a5 5 0 0 1 7-7l7 7a5 5 0 0 1-7 7z"/><path d="m8 8 8 8"/></svg>',
+};
+
+function render() {
+  const d = leerDatos();
+
+  /* --- Badge de estado --- */
+  $('badgeEstado').textContent = `${ESTADOS[estadoSel].label} · T. ${SEASONS[temporadaSel].label.toLowerCase()}`;
+
+  /* --- Resultados químicos + filtrado --- */
+  const rPH = calcPH(d.vol, d.ph);
+  const rCl = calcCloro(d.vol, d.cloro, d.prod);
+  const rF  = calcFiltrado(d.vol, d.caudal, temporadaSel);
+  const rPa = d.usaPastilla ? calcPastillas(d.vol, d.semanas, temporadaSel, d.entrega) : null;
+  const cont = $('resultados');
+
+  // Mostrar u ocultar el intervalo según el interruptor de pastilla
+  $('pastillaCfg').style.display = d.usaPastilla ? '' : 'none';
+
+  // Aviso de equipo según dónde se deja la pastilla
+  const warnEl = $('entregaWarn');
+  const dw = (DELIVERY[d.entrega] || {}).warn || '';
+  warnEl.textContent = dw;
+  warnEl.className = 'text-[12px] mt-1.5 leading-snug ' + (d.entrega === 'bomba' ? 'text-red-600 font-500' : 'text-amber-600');
+  warnEl.style.display = dw ? '' : 'none';
+
+  if (!isFinite(d.vol) || !isFinite(d.ph) || !isFinite(d.cloro)) {
+    cont.innerHTML = `<div class="text-center text-slate-400 text-sm py-6">Completa <b>volumen</b>, <b>pH</b> y <b>cloro</b> para ver las dosis.</div>`;
+  } else {
+    let html = '';
+
+    // pH
+    if (rPH && rPH.need) {
+      html += filaResultado(IC.gota, rPH.accion, qty(rPH.gramos, 'g'), rPH.producto, 'water');
+    } else {
+      html += filaResultado(IC.gota, 'pH', 'En rango', 'No requiere ajuste hoy', 'ok');
+    }
+
+    // Cloro granulado (corrección de hoy)
+    if (rCl && rCl.skip) {
+      html += filaResultado(IC.frasco, 'Granulado hoy', 'No aplica', 'Esta visita solo con pastilla', 'ok');
+    } else if (rCl && rCl.need) {
+      const t = rCl.choque ? 'warn' : 'water';
+      const sub = (rCl.choque ? 'Dosis de choque · ' : '') + `objetivo ${fmt(rCl.objetivo)} ppm · ${rCl.producto}`;
+      html += filaResultado(IC.frasco, rCl.choque ? 'Cloración de choque' : 'Granulado hoy', qty(rCl.cantidad, rCl.unidad), sub, t);
+    } else {
+      html += filaResultado(IC.frasco, 'Granulado hoy', 'No requiere', `Cloro en ${fmt(ESTADOS[estadoSel].fcTarget)} ppm objetivo`, 'ok');
+    }
+
+    // Pastilla triple acción (mantención entre visitas)
+    if (rPa) {
+      const plural = rPa.n === 1 ? 'pastilla' : 'pastillas';
+      const semTxt = rPa.semanas === 1 ? '1 semana' : `${rPa.semanas} semanas`;
+      html += filaResultado(IC.pastilla, 'Pastilla triple acción',
+        `${rPa.n} ${plural} de 200 g`,
+        `En ${rPa.entrega.loc} · temporada ${rPa.temporada.label.toLowerCase()} · cubre ~${semTxt}`, 'water');
+    }
+
+    // Filtrado
+    if (rF) {
+      html += filaResultado(IC.reloj, 'Filtrado hoy', `${fmt(rF.horas, rF.horas % 1 ? 1 : 0)} h`, rF.plan, 'water');
+    }
+
+    cont.innerHTML = html;
+  }
+
+  /* --- Cobro --- */
+  const phKg = (rPH && rPH.need) ? rPH.gramos / 1000 : 0;
+  const total = d.base + phKg * d.kgPrecio;
+  $('total').textContent = clp(total);
+
+  /* --- Preview del reporte --- */
+  $('preview').textContent = construirReporte(d, rPH, rCl, rF, rPa, total, phKg);
+
+  /* --- Resumen para registro propio --- */
+  $('resumen').textContent = construirResumen(d, rPH, rCl, rF, rPa, total, phKg);
+}
+
+/* ============================================================
+   Reporte para WhatsApp
+   ============================================================ */
+
+function construirReporte(d, rPH, rCl, rF, rPa, total, phKg) {
+  const hoy = new Date().toLocaleDateString('es-CL', { day: '2-digit', month: 'long', year: 'numeric' });
+  const L = [];
+
+  L.push(`Hola${d.nombre ? ' ' + d.nombre : ''} 👋`);
+  L.push('');
+  L.push(`Te dejo el reporte de la mantención de tu piscina de hoy (${hoy}):`);
+  if (d.direccion) L.push(`📍 ${d.direccion}`);
+  L.push('');
+
+  // Estado inicial
+  L.push('💧 *Estado inicial del agua*');
+  if (isFinite(d.ph))    L.push(`• pH medido: ${fmt(d.ph, d.ph % 1 ? 1 : 0)} (ideal 7,2–7,6)`);
+  if (isFinite(d.cloro)) L.push(`• Cloro libre: ${fmt(d.cloro, d.cloro % 1 ? 1 : 0)} ppm (ideal 1–3 ppm)`);
+  L.push(`• Aspecto: ${ESTADOS[estadoSel].label}${d.obs ? ' — ' + d.obs : ''}`);
+  L.push('');
+
+  // Químicos aplicados
+  L.push('🧪 *Productos aplicados*');
+  if (rPH && rPH.need)       L.push(`• ${rPH.accion}: ${qty(rPH.gramos, 'g')} de ${rPH.producto}`);
+  else                       L.push('• pH dentro del rango ideal, no requirió ajuste');
+  if (rCl && rCl.skip)       { /* solo pastilla: no se menciona granulado */ }
+  else if (rCl && rCl.need)  L.push(`• ${rCl.choque ? 'Cloración de choque' : 'Cloro granulado'}: ${qty(rCl.cantidad, rCl.unidad)} de ${rCl.producto}`);
+  else                       L.push('• Cloro en nivel adecuado, no requirió granulado');
+  if (rPa) {
+    const plural = rPa.n === 1 ? 'pastilla' : 'pastillas';
+    L.push(`• Pastilla triple acción: ${rPa.n} ${plural} de 200 g en ${rPa.entrega.loc}`);
+  }
+  if (ESTADOS[estadoSel].nota) L.push(`• ${ESTADOS[estadoSel].nota}`);
+  L.push('');
+
+  // Filtrado
+  if (rF) {
+    L.push('⏱️ *Filtrado recomendado*');
+    L.push(`• ${fmt(rF.horas, rF.horas % 1 ? 1 : 0)} horas de bomba hoy`);
+    L.push(`• ${rF.plan}`);
+    L.push('');
+  }
+
+  // Cobro
+  if (d.incluirCobro) {
+    L.push('🧾 *Valor del servicio*');
+    if (phKg > 0) L.push(`• Visita ${clp(d.base)} + pH ${fmt(phKg, 2)} kg (${clp(phKg * d.kgPrecio)})`);
+    else          L.push(`• Visita ${clp(d.base)}`);
+    L.push(`• Total: *${clp(total)}*`);
+    L.push('');
+  }
+
+  L.push('Cualquier duda quedo atento 🙌');
+  L.push(d.firma || 'Servicio de mantención de piscinas');
+
+  return L.join('\n');
+}
+
+/* --- Resumen compacto para registro propio (WhatsApp del técnico) --- */
+function construirResumen(d, rPH, rCl, rF, rPa, total, phKg) {
+  const hoy = new Date().toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: '2-digit' });
+  const L = [];
+
+  L.push(`📋 ${hoy} · ${d.nombre || 'Cliente s/n'}`);
+  if (d.direccion) L.push(`📍 ${d.direccion}`);
+  const volTxt = isFinite(d.vol) ? `${fmt(d.vol)} L` : 's/vol';
+  L.push(`Vol ${volTxt} · Temp ${SEASONS[temporadaSel].label.toLowerCase()} · Agua ${ESTADOS[estadoSel].label.toLowerCase()}`);
+
+  // Lecturas
+  const phTxt = isFinite(d.ph) ? fmt(d.ph, d.ph % 1 ? 1 : 0) : '—';
+  const clTxt = isFinite(d.cloro) ? fmt(d.cloro, d.cloro % 1 ? 1 : 0) : '—';
+  L.push(`Medido: pH ${phTxt} · Cloro ${clTxt} ppm`);
+
+  // Aplicado
+  const ap = [];
+  if (rPH && rPH.need) ap.push(`pH ${qty(rPH.gramos, 'g')} (${rPH.subir ? '↑' : '↓'})`);
+  if (rCl && rCl.need) ap.push(`${rCl.choque ? 'choque' : 'granulado'} ${qty(rCl.cantidad, rCl.unidad)}`);
+  if (rPa) ap.push(`pastilla ${rPa.n}×200g (${rPa.entrega.label})`);
+  L.push(`Aplicado: ${ap.length ? ap.join(' · ') : 'nada'}`);
+
+  if (rF) L.push(`Filtrado: ${fmt(rF.horas, rF.horas % 1 ? 1 : 0)} h`);
+
+  // Cobro (siempre en el registro, aunque no vaya al cliente)
+  if (phKg > 0) L.push(`Cobro: ${clp(total)} (visita ${clp(d.base)} + pH ${fmt(phKg, 2)}kg)`);
+  else          L.push(`Cobro: ${clp(total)}`);
+
+  if (d.obs) L.push(`Obs: ${d.obs}`);
+
+  return L.join('\n');
+}
+
+/* --- Normalización de teléfono chileno para wa.me --- */
+function normFono(f) {
+  let s = f.replace(/\D/g, '');
+  if (!s) return '';
+  if (s.startsWith('56')) return s;
+  if (s.length === 9 && s.startsWith('9')) return '56' + s;   // 9 XXXX XXXX
+  if (s.length === 8) return '569' + s;                       // sin el 9 inicial
+  return s;
+}
+
+/* ============================================================
+   Eventos
+   ============================================================ */
+
+// Selección de estado del agua
+$('estados').addEventListener('click', e => {
+  const btn = e.target.closest('[data-estado]');
+  if (!btn) return;
+  estadoSel = btn.dataset.estado;
+  document.querySelectorAll('#estados .chip').forEach(c => c.classList.toggle('on', c === btn));
+  render();
+});
+
+// Selección de temporada
+$('temporadas').addEventListener('click', e => {
+  const btn = e.target.closest('[data-temp]');
+  if (!btn) return;
+  temporadaSel = btn.dataset.temp;
+  document.querySelectorAll('#temporadas .chip').forEach(c => c.classList.toggle('on', c === btn));
+  render();
+});
+
+// Recalcular en vivo
+['nombre','direccion','fono','volumen','caudal','ph','cloro','obs','prodCloro','usaPastilla','proxVisita','entrega','firma','precioBase','precioKg','incluirCobro']
+  .forEach(id => { $(id).addEventListener('input', render); $(id).addEventListener('change', render); });
+
+// Enviar por WhatsApp
+$('btnWA').addEventListener('click', () => {
+  const d = leerDatos();
+  if (!isFinite(d.vol) || !isFinite(d.ph) || !isFinite(d.cloro)) {
+    alert('Completa volumen, pH y cloro antes de generar el reporte.');
+    return;
+  }
+  const texto = $('preview').textContent;
+  const fono = normFono(d.fono);
+  const url = fono
+    ? `https://wa.me/${fono}?text=${encodeURIComponent(texto)}`
+    : `https://wa.me/?text=${encodeURIComponent(texto)}`;
+  window.open(url, '_blank');
+});
+
+// Copiar reporte
+$('btnCopiar').addEventListener('click', async () => {
+  const texto = $('preview').textContent;
+  try {
+    await navigator.clipboard.writeText(texto);
+    $('copiarTxt').textContent = '¡Copiado!';
+    setTimeout(() => $('copiarTxt').textContent = 'Copiar reporte', 1600);
+  } catch {
+    const ta = document.createElement('textarea');
+    ta.value = texto; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    $('copiarTxt').textContent = '¡Copiado!';
+    setTimeout(() => $('copiarTxt').textContent = 'Copiar reporte', 1600);
+  }
+});
+
+// Copiar resumen (registro propio)
+$('btnCopiarResumen').addEventListener('click', async () => {
+  const texto = $('resumen').textContent;
+  try {
+    await navigator.clipboard.writeText(texto);
+    $('copiarResumenTxt').textContent = '¡Copiado!';
+    setTimeout(() => $('copiarResumenTxt').textContent = 'Copiar resumen', 1600);
+  } catch {
+    const ta = document.createElement('textarea');
+    ta.value = texto; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    $('copiarResumenTxt').textContent = '¡Copiado!';
+    setTimeout(() => $('copiarResumenTxt').textContent = 'Copiar resumen', 1600);
+  }
+});
+
+// Marcar la temporada autodetectada por el mes actual
+document.querySelectorAll('#temporadas .chip').forEach(c => c.classList.toggle('on', c.dataset.temp === temporadaSel));
+
+// Primer render
+render();
+</script>
+</body>
+</html>
